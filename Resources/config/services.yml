@@ -1,0 +1,7 @@
+parameters:
+#    webit_common_pl_upload.example.class: Webit\Common\PlUploadBundle\Example
+
+services:
+#    webit_common_pl_upload.example:
+#        class: %webit_common_pl_upload.example.class%
+#        arguments: [@service_id, "plain_value", %parameter%]
