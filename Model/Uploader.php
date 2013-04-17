@@ -2,15 +2,10 @@
 namespace Webit\Common\PlUploadBundle\Model;
 
 use Webit\Common\PlUploadBundle\Event\FileUploadedEvent;
-
 use Webit\Common\PlUploadBundle\Event\Events;
-
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
-
 use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
-
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 

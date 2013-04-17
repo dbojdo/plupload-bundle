@@ -24,18 +24,12 @@ class UploadController extends FOSRestController {
 	
 	public function postUploadAction() {
 		$json = $this->uploader->handleUpload($this->getRequest());
-		$f = $this->getRequest()->files->all();
-		foreach($f as $k=>$file) {
-			$this->getRequest()->files->remove($k);
-		}
-		
-		//$arFiles = $this->getRequest()->files->all();
-		//$uploadedFile = count($arFiles) > 0 ? array_shift($arFiles) : null;
 		
 		$response = new Response();
 		$response->setStatusCode(200,'OK');
 		$response->setCharset('utf-8');
 		$response->headers->add(array('Content-Type'=>'text/html; charset=utf-8'));
+		
 		$str = $this->get('serializer')->serialize($json,'json');
 		$response->setContent($str);
 		
