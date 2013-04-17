@@ -19,6 +19,11 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('webit_common_pl_upload');
+        $rootNode
+        	->children()
+        		->scalarNode('upload_path')->defaultValue('%kernel.cache_dir%/plupload')->end()
+        	->end()
+       	->end();
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
