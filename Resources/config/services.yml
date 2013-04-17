@@ -1,7 +1,13 @@
 parameters:
-#    webit_common_pl_upload.example.class: Webit\Common\PlUploadBundle\Example
-
+    webit_common_pl_upload.upload_controller.class: Webit\Common\PlUploadBundle\Controller\UploadController
+    webit_common_pl_upload.uploader.class: Webit\Common\PlUploadBundle\Model\Uploader
+    
 services:
-#    webit_common_pl_upload.example:
-#        class: %webit_common_pl_upload.example.class%
-#        arguments: [@service_id, "plain_value", %parameter%]
+    webit_common_pl_upload.uploader:
+        class: %webit_common_pl_upload.uploader.class%
+        arguments: [%webit_common_pl_upload.upload_path%, @event_dispatcher]
+    webit_common_pl_upload.upload_controller:
+        class: %webit_common_pl_upload.upload_controller.class%
+        arguments: [@webit_common_pl_upload.uploader]
+        calls:
+            - [ setContainer, [ @service_container ] ]

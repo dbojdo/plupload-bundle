@@ -1,3 +1,5 @@
 webit_common_pl_upload_upload:
-    pattern:  /upload
-    defaults: { _controller: WebitCommonPlUploadBundle:Upload:upload }
+    type: rest
+    resource: webit_common_pl_upload.upload_controller
+    options:
+        expose: true

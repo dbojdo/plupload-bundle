@@ -43,20 +43,25 @@ class Uploader implements UploaderInterface {
 		$chunks = (int)$request->request->get('chunks',1);
 		
 		$arFile = $bag->get($file->getClientOriginalName(),array());
-		$arFile[$chunk] = $file;
+		$arFile[$chunk] = $file->getPathname();
 		$bag->set($file->getClientOriginalName(),$arFile);
 		
 		if($chunk == ($chunks - 1)) {
 			// koniec uploadu
+			
 			$arFiles = $bag->get($file->getClientOriginalName());
+			
 			if(count($arFiles) != $chunks) {
 				// niekompletny
 				return false;
 			}
-			$file = $this->merge($arFiles);
 			
-			$this->ed->dispatch(Events::EVENT_FILE_UPLOADED, new FileUploadedEvent($file, $request));
+			$file = $this->merge($file->getClientOriginalName(), $arFiles);
+
+			$event = new FileUploadedEvent($file, $request);
+			$this->ed->dispatch(Events::EVENT_FILE_UPLOADED, $event);
 		} else {
+			$event = new FileUploadedEvent($file, $request);
 			$this->ed->dispatch(Events::EVENT_CHUNK_UPLOADED, new FileUploadedEvent($file, $request));
 		}
 		
@@ -67,28 +72,33 @@ class Uploader implements UploaderInterface {
 	 * @param array $files
 	 * @return \Symfony\Component\HttpFoundation\File\UploadedFile
 	 */
-	private function merge(array $files) {
+	private function merge($clientName, array $files) {
+		if(is_dir($this->uploadPath) == false) {
+			mkdir($this->uploadPath,0755,true);
+		}
+		
 		$filename = $this->uploadPath .'/'.substr(md5(mt_rand(0,100000).time()),0,6);
 		
-		$ext = end(explode(".", $files[0]->getClientOriginalName()));
+		$arFile = explode(".", $clientName);
+		$ext = end($arFile);
 		if($ext) {
 			$filename .= '.'.$ext;
 		}
 		
 		foreach($files as $file) {
-			file_put_contents($filename, file_get_contents($file->getPathname()), FILE_APPEND);
+			file_put_contents($filename, file_get_contents($file), FILE_APPEND);
 		}
 		
 		// $path, $originalName, $mimeType = null, $size = null, $error = null, $test = false
-		$file = new UploadedFile($filename, $file->getClientOriginalName(), $this->getMime($filename), filesize($filename));
+		$file = new UploadedFile($filename, $clientName, $this->getMime($filename), filesize($filename));
 		
 		return $file;
 	}
 	
 	private function getMime($filename) {
-		$finfo = new \finfo(FILEINFO_MIME_TYPE, $filename);
-		$mimetype = $finfo->file();
-		
+		$finfo = new \finfo(FILEINFO_MIME_TYPE);
+		$mimetype = $finfo->file($filename);
+
 		return $mimetype ?: null;
 	}
 	
@@ -97,12 +107,11 @@ class Uploader implements UploaderInterface {
 	 * @return \Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag
 	 */
 	private function getFilesBag(Request $request) {
-		$bag = $request->getSession()->getBag('_plupload');
-		if(!$bag) {
+		if($request->getSession()->has('_plupload') == false) {
 			$bag = new AttributeBag('_plupload');
-			$request->getSession()->registerBag($bag);
+			$request->getSession()->set('_plupload', $bag);
 		}
-		
+		$bag = $request->getSession()->get('_plupload');
 		return $bag;
 	}
 	

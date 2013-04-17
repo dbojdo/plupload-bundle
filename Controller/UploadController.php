@@ -1,13 +1,18 @@
 <?php
-use Symfony\Component\HttpFoundation\Response;
-
 namespace Webit\Common\PlUploadBundle\Controller;
 
+use Symfony\Component\HttpFoundation\Response;
 use Webit\Common\PlUploadBundle\Model\UploaderInterface;
-
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use FOS\RestBundle\Controller\Annotations as FOS;
+use FOS\RestBundle\Controller\FOSRestController;
 
-class UploadController extends Controller {
+/**
+ * 
+ * @author dbojdo
+ * @FOS\NamePrefix("webit_plupload_")
+ */
+class UploadController extends FOSRestController {
 	/**
    * @var UploaderInterface
 	 */
@@ -17,17 +22,22 @@ class UploadController extends Controller {
 		$this->uploader = $uploader;
 	}
 	
-	public function uploadAction() {
-		$event = $this->uploader->handleUpload($this->getRequest());
+	public function postUploadAction() {
+		$json = $this->uploader->handleUpload($this->getRequest());
+		$f = $this->getRequest()->files->all();
+		foreach($f as $k=>$file) {
+			$this->getRequest()->files->remove($k);
+		}
 		
-		$arFiles = $this->getRequest()->files->all();
-		$uploadedFile = count($arFiles) > 0 ? array_shift($arFiles) : null;
+		//$arFiles = $this->getRequest()->files->all();
+		//$uploadedFile = count($arFiles) > 0 ? array_shift($arFiles) : null;
 		
-		$json= $event->getResponse();
 		$response = new Response();
+		$response->setStatusCode(200,'OK');
 		$response->setCharset('utf-8');
 		$response->headers->add(array('Content-Type'=>'text/html; charset=utf-8'));
-		$response->setContent($this->get('serializer')->serialize($response,'json'));
+		$str = $this->get('serializer')->serialize($json,'json');
+		$response->setContent($str);
 		
 		return $response;
 	}
