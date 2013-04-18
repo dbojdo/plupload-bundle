@@ -1,6 +1,8 @@
 <?php
 namespace Webit\Common\PlUploadBundle\Model;
 
+use Symfony\Component\HttpFoundation\File\File;
+
 use Webit\Common\PlUploadBundle\Event\FileUploadedEvent;
 use Webit\Common\PlUploadBundle\Event\Events;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -37,30 +39,41 @@ class Uploader implements UploaderInterface {
 		$chunk = (int)$request->request->get('chunk',0);
 		$chunks = (int)$request->request->get('chunks',1);
 		
-		$arFile = $bag->get($file->getClientOriginalName(),array());
+		$key = $file->getClientOriginalName() == 'blob' ? $request->request->get('name',substr(md5(time()), 0, 6)) : $file->getClientOriginalName();
+		
+		$arFile = $bag->get($key,array());
+		$file = $this->move($file);
+		
 		$arFile[$chunk] = $file->getPathname();
-		$bag->set($file->getClientOriginalName(),$arFile);
+		$bag->set($key,$arFile);
 		
 		if($chunk == ($chunks - 1)) {
 			// koniec uploadu
 			
-			$arFiles = $bag->get($file->getClientOriginalName());
+			$arFiles = $bag->get($key);
 			
 			if(count($arFiles) != $chunks) {
 				// niekompletny
 				return false;
 			}
 			
-			$file = $this->merge($file->getClientOriginalName(), $arFiles);
+			$file = $this->merge($key, $arFiles);
 
 			$event = new FileUploadedEvent($file, $request);
 			$this->ed->dispatch(Events::EVENT_FILE_UPLOADED, $event);
 		} else {
-			$event = new FileUploadedEvent($file, $request);
-			$this->ed->dispatch(Events::EVENT_CHUNK_UPLOADED, new FileUploadedEvent($file, $request));
+			//$event = new FileUploadedEvent($file, $request);
+			//$this->ed->dispatch(Events::EVENT_CHUNK_UPLOADED, $event);
+		}
+		if(isset($event)) {
+			return $event->getResponse();
+		} else {
+			$response = new JsonRpcResponse();
+			$response->setId(md5($key . $chunk));
+			$response->setResult('OK'); 
+			return $response;
 		}
 		
-		return $event->getResponse();
 	}
 	
 	/**
@@ -88,6 +101,18 @@ class Uploader implements UploaderInterface {
 		$file = new UploadedFile($filename, $clientName, $this->getMime($filename), filesize($filename));
 		
 		return $file;
+	}
+	
+	/**
+	 * @param UploadedFile $file
+	 * @return File
+	 */
+	private function move(UploadedFile $file) {
+		$dir = $this->uploadPath .'/chunks';
+		if(is_dir($dir) == false) {
+			mkdir($dir,0755,true);
+		}
+		return $file->move($dir);
 	}
 	
 	private function getMime($filename) {

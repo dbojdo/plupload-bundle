@@ -31,7 +31,7 @@ class FileUploadedEvent extends Event {
 	 * @param Request $request
 	 */
 	public function __construct(UploadedFile $file, Request $request) {
-		//$this->file = $file;
+		$this->file = $file;
 		$this->request = $request;
 		
 		$this->response = new JsonRpcResponse();
