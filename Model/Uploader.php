@@ -31,7 +31,7 @@ class Uploader implements UploaderInterface {
 		$bag = $this->getFilesBag($request);
 		$file = $this->getFile($request);
 		
-		if(!$file) {
+		if(empty($file)) {
 			// brak pliku do uploadowania
 			// return coś tam
 		}
@@ -98,7 +98,7 @@ class Uploader implements UploaderInterface {
 		}
 		
 		// $path, $originalName, $mimeType = null, $size = null, $error = null, $test = false
-		$file = new UploadedFile($filename, $clientName, $this->getMime($filename), filesize($filename));
+		$file = new UploadedFile($filename, $clientName, $this->getMime($filename), filesize($filename), null, true);
 		
 		return $file;
 	}
