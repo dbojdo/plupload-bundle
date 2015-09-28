@@ -95,6 +95,7 @@ class Uploader implements UploaderInterface {
 		
 		foreach($files as $file) {
 			file_put_contents($filename, file_get_contents($file), FILE_APPEND);
+			@unlink($file);
 		}
 		
 		// $path, $originalName, $mimeType = null, $size = null, $error = null, $test = false
