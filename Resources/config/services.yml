@@ -5,9 +5,9 @@ parameters:
 services:
     webit_common_pl_upload.uploader:
         class: %webit_common_pl_upload.uploader.class%
-        arguments: [%webit_common_pl_upload.upload_path%, @event_dispatcher]
+        arguments: [%webit_common_pl_upload.upload_path%, "@event_dispatcher"]
     webit_common_pl_upload.upload_controller:
         class: %webit_common_pl_upload.upload_controller.class%
-        arguments: [@webit_common_pl_upload.uploader]
+        arguments: ["@webit_common_pl_upload.uploader"]
         calls:
-            - [ setContainer, [ @service_container ] ]
+            - [ setContainer, [ "@service_container" ] ]
